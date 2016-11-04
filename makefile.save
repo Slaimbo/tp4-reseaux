@@ -1,0 +1,7 @@
+# Makefile (règles implicites
+
+EchoCLient.java
+	javac EchoCLient.java
+
+clean:
+	rm *.o *.class

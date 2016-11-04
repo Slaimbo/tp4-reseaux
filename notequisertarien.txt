@@ -1,0 +1,56 @@
+ctrl+c : envoi SININT pour kill le process
+ctrl+c : envoi EOF sur l'input
+
+Que passe-t-il si deux clients se connectent en même temps? Pourquoi? 
+
+	Le premier client peut se co mais pas le second. En effet le serveur ne gere pas le multi client
+
+Sur quel port écoute votre serveur? Comment cela est-il configurable? 
+
+	Le serveur ecoute sur le port donné dans le paramétre de la commande. Une fois un client co
+	le serveur créer un nouveau socket pour ce client sur un nouveau port attribuer par le serveur.
+
+LES PORT (QUEPIQUE) SUR VM3 : 
+
+Connexions Internet actives (serveurs et établies)
+Proto Recv-Q Send-Q Adresse locale          Adresse distante        Etat        PID/Program name
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      -               
+tcp        0      0 127.0.0.1:25            0.0.0.0:*               LISTEN      -               
+tcp        0      0 0.0.0.0:35296           0.0.0.0:*               LISTEN      -               
+tcp        0      0 0.0.0.0:7               0.0.0.0:*               LISTEN      -               
+tcp        0      0 0.0.0.0:111             0.0.0.0:*               LISTEN      -               
+tcp        0      0 0.0.0.0:1234            0.0.0.0:*               LISTEN      2565/echoserveur.exe
+tcp6       0      0 :::22                   :::*                    LISTEN      -               
+tcp6       0      0 ::1:25                  :::*                    LISTEN      -               
+tcp6       0      0 :::38339                :::*                    LISTEN      -               
+tcp6       0      0 :::111                  :::*                    LISTEN      -               
+udp        0      0 0.0.0.0:46973           0.0.0.0:*                           -               
+udp        0      0 0.0.0.0:1003            0.0.0.0:*                           -               
+udp        0      0 127.0.0.1:1013          0.0.0.0:*                           -               
+udp        0      0 0.0.0.0:62016           0.0.0.0:*                           -               
+udp        0      0 0.0.0.0:68              0.0.0.0:*                           -               
+udp        0      0 0.0.0.0:111             0.0.0.0:*                           -               
+udp6       0      0 :::60817                :::*                                -               
+udp6       0      0 :::1003                 :::*                                -               
+udp6       0      0 :::36355                :::*                                -               
+udp6       0      0 :::111                  :::*                                -     
+
+Pouvez-vous lancer deux serveurs en même temps? 
+	Oui si on précise des ports differents pour chaque serveur.         
+
+soket : une interface de comunication
+		pour send pas besion du bind
+		pour un serveur, il faut bind les info (ip, port etc) tu serveur sur le soket.
+
+
+Le serveur peut-il faire la différence avec echoclient? 
+
+	Non le serveur ne peut pas faire la difference en la version en C et celle en java, ce sont les meme données 
+	 qui sont envoyé.
+
+En quoi cette partie illustre-t-elle le paradigme client/serveur? 
+
+	Le serveur s'occupe seullement de fournir un service (requette -> réponse) il ne se souci donc pas
+	de la maniere donc cette requete à été envoyé.
+
+fork, thread ou select.
