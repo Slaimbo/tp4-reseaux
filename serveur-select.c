@@ -20,7 +20,7 @@
 #define MAXLIGNE 80
 #define CIAO "Au revoir ...\n"
 
-void echo(int f, char* hote, char* port, char politesse);
+char echo(int f, char* hote, char* port, char politesse);
 
 int main(int argc, char *argv[])
 {
@@ -75,7 +75,6 @@ int main(int argc, char *argv[])
     exit(6);
   }
   fprintf(stderr,"listen!\n");
-//s le socket et rdfs le truc
   fd_set rdfs;
   int actual = 0;
   int max = s;
@@ -130,7 +129,13 @@ int main(int argc, char *argv[])
             		if(FD_ISSET(clients[j], &rdfs))
             		{
 				err = getnameinfo((struct sockaddr*)&clients[j],len,hotec,NI_MAXHOST,portc,NI_MAXSERV,0);
-	  			echo(clients[j],hotec,portc, 0);
+	  			if ( echo(clients[j],hotec,portc, 0) == 0)
+				{
+					close(clients[j]);
+					//remove client socket
+					memmove(clients + j, clients + j + 1, (actual - j - 1) * sizeof(int));
+					actual--;
+				}	
 			}
 		}
   	}	
@@ -139,7 +144,7 @@ int main(int argc, char *argv[])
 }
 
 /* echo des messages reçus (le tout via le descripteur f) */
-void echo(int f, char* hote, char* port, char politesse)
+char echo(int f, char* hote, char* port, char politesse)
 {
   ssize_t lu; /* nb d'octets reçus */
   char msg[MAXLIGNE+1]; /* tampons pour les communications */ 
@@ -155,13 +160,12 @@ void echo(int f, char* hote, char* port, char politesse)
   }
   else
   {
-  	//do { /* Faire echo et logguer */
+  	/* Faire echo et logguer */
   	lu = recv(f,tampon,MAXLIGNE,0);
 	
-  	if (lu < 0 )
+  	if (lu <= 0 )
   	{
-		printf("erreur de lecture\n");
-		exit(2);
+		return 0;
   	}
   	tampon[lu] = '\0';  
   	fprintf(stderr,"[%s:%s](%i) :%s\n",hote,port,pid,tampon);
@@ -169,4 +173,5 @@ void echo(int f, char* hote, char* port, char politesse)
         /* echo vers le client */
   	send(f, msg, strlen(msg),0);
   }  
+  return 1;
 }
