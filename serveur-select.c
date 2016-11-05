@@ -20,7 +20,7 @@
 #define MAXLIGNE 80
 #define CIAO "Au revoir ...\n"
 
-void echo(int f, char* hote, char* port);
+void echo(int f, char* hote, char* port, char politesse);
 
 int main(int argc, char *argv[])
 {
@@ -30,7 +30,6 @@ int main(int argc, char *argv[])
   struct addrinfo indic = {AI_PASSIVE, /* Toute interface */
                            PF_INET,SOCK_STREAM,0, /* IP mode connecté */
                            0,NULL,NULL,NULL};
-  struct sockaddr_in client; /* adresse de socket du client */
   char * port; /* Port pour le service */
   int err; /* code d'erreur */
   
@@ -84,103 +83,90 @@ int main(int argc, char *argv[])
   while(1) 
   {
 	int i = 0;
-    FD_ZERO(&rdfs);
+	int j = 0;
+    	FD_ZERO(&rdfs);
 	FD_SET(s, &rdfs);
 	for( i = 0; i < actual; i++)
 	{
 		FD_SET(clients[i], &rdfs);
 	}
-
 	if(select(max + 1, &rdfs, NULL, NULL, NULL) == -1)
 	{
 		printf("error\n");
 		exit(2);
 	}
-	struct sockaddr_in csin = { 0 };
-	char hotec[NI_MAXHOST] = "vv";
-	char portc[NI_MAXSERV] = "cc";
+	struct sockaddr_in csin;
+	len=sizeof(struct sockaddr_in);
+	char hotec[NI_MAXHOST];
+	char portc[NI_MAXSERV];
 	if(FD_ISSET(s, &rdfs))
 	{
+		printf("Un nouveau client\n");
 		len = sizeof csin;
 		if( (n = accept(s, (struct sockaddr *) &csin, (socklen_t*)&len)) < 0 )
 		{
-      		perror("accept");
-     		exit(7);
-    	}
-	  	echo(n,hotec,portc);
+      			perror("accept");
+     			exit(7);
+    		}
+		err = getnameinfo((struct sockaddr*)&csin,len,hotec,NI_MAXHOST,portc,NI_MAXSERV,0);
+		if (err < 0 )
+		{
+      			fprintf(stderr,"résolution client (%i): %s\n",n,gai_strerror(err));
+    		}
+		else
+		{ 
+      			fprintf(stderr,"accept! (%i) ip=%s port=%s\n",n,hotec,portc);
+    		}
+	  	echo(n,hotec,portc, 1);
 		max = n > max ? n : max;
 		FD_SET(n, &rdfs);
 		clients[actual++] = n;
-		
-  }
-  else
-  {
-		 int j = 0;
-         for(j = 0; j < actual; j++)
-         {
-            /* a client is talking */
-            if(FD_ISSET(clients[j], &rdfs))
-            {
-	  			echo(n,hotec,portc);
+  	}
+  	else
+  	{
+         	for(j = 0; j < actual; j++)
+         	{
+           		 /* a client is talking */
+            		if(FD_ISSET(clients[j], &rdfs))
+            		{
+				err = getnameinfo((struct sockaddr*)&clients[j],len,hotec,NI_MAXHOST,portc,NI_MAXSERV,0);
+	  			echo(clients[j],hotec,portc, 0);
 			}
 		}
-  }
-
-
-    /* attendre et gérer indéfiniment les connexions entrantes */
-	/*
-    len=sizeof(struct sockaddr_in);
-    if( (n=accept(s,(struct sockaddr *)&client,(socklen_t*)&len)) < 0 ) {
-      perror("accept");
-      exit(7);
-    }*/
-    /* Nom réseau du client */
-	/*
-    char hotec[NI_MAXHOST];  char portc[NI_MAXSERV];
-    err = getnameinfo((struct sockaddr*)&client,len,hotec,NI_MAXHOST,portc,NI_MAXSERV,0);
-    if (err < 0 ){
-      fprintf(stderr,"résolution client (%i): %s\n",n,gai_strerror(err));
-    }else{ 
-      fprintf(stderr,"accept! (%i) ip=%s port=%s\n",n,hotec,portc);
-    }*/
-    /* traitement */
-
-	
+  	}	
   }
   return EXIT_SUCCESS;
 }
 
 /* echo des messages reçus (le tout via le descripteur f) */
-void echo(int f, char* hote, char* port)
+void echo(int f, char* hote, char* port, char politesse)
 {
   ssize_t lu; /* nb d'octets reçus */
   char msg[MAXLIGNE+1]; /* tampons pour les communications */ 
   char tampon[MAXLIGNE+1]; 
   int pid = getpid(); /* pid du processus */
-  int compteur=0;
   
   /* message d'accueil */
-  snprintf(msg,MAXLIGNE,"Bonjour %s! (vous utilisez le port %s)\n",hote,port);
-  /* envoi du message d'accueil */
-  send(f,msg,strlen(msg),0);
-  
-  //do { /* Faire echo et logguer */
-  lu = recv(f,tampon,MAXLIGNE,0);
-  if (lu < 0 )
+  if(politesse)
   {
-	exit(2);
+  	snprintf(msg,MAXLIGNE,"Bonjour %s! (vous utilisez le port %s)\n",hote,port);
+  	/* envoi du message d'accueil */
+  	send(f,msg,strlen(msg),0);
   }
-  tampon[lu] = '\0';  
-  fprintf(stderr,"[%s:%s](%i): %3i :%s",hote,port,pid,compteur,tampon);
-  snprintf(msg,MAXLIGNE,"> %s",tampon);
+  else
+  {
+  	//do { /* Faire echo et logguer */
+  	lu = recv(f,tampon,MAXLIGNE,0);
+	
+  	if (lu < 0 )
+  	{
+		printf("erreur de lecture\n");
+		exit(2);
+  	}
+  	tampon[lu] = '\0';  
+  	fprintf(stderr,"[%s:%s](%i) :%s\n",hote,port,pid,tampon);
+  	snprintf(msg,MAXLIGNE,"> %s",tampon);
         /* echo vers le client */
-  send(f, msg, strlen(msg),0);   
+  	send(f, msg, strlen(msg),0);
+  }  
 }
-  //} while ( 1 );
-       
-  /* le correspondant a quitté */
-	/*
-  send(f,CIAO,strlen(CIAO),0);
-  close(f);
-  fprintf(stderr,"[%s:%s](%i): Terminé.\n",hote,port,pid);
-}*/
