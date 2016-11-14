@@ -1,13 +1,9 @@
-#include <errno.h>
-#include <string.h>
-
-
-
-
 /* echo / serveur simpliste
    Master Informatique 2012 -- Université Aix-Marseille  
    Emmanuel Godard
 */
+#include <errno.h>
+#include <string.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>

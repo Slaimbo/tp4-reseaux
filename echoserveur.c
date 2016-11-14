@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     /* traitement */
 	if(fork() == 0)
 	{
-    	echo(n,hotec,portc);
+    		echo(n,hotec,portc);
 		break;
 	}
   }
